@@ -17,7 +17,7 @@ class ViewController: UIViewController {
   var glucoseData: [GlucoseData] = []
   
   var centralManager: CBCentralManager!
-  let glucoseMeterUUID = CBUUID(string: "0xFF00") // UUID of the devices (you can use NRF Connect for scan it)
+  let glucoseMeterUUID = CBUUID(string: "0xFF00") // UUID of the devices (you can use NRFConnect for scan it)
   let glucoseMeterCharacteristic = "FF01" // Characteristic that we want get data from (see bluetooth LE documentation)
   var glucosePeripheral : CBPeripheral!
   let dateFormatter = DateFormatter()
