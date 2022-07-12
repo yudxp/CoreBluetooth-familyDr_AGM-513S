@@ -1,0 +1,76 @@
+Source : 
+http://www.javadecompilers.com //to extract android apps
+https://www.raywenderlich.com/231-core-bluetooth-tutorial-for-ios-heart-rate-monitor#toc-anchor-013 //Core bluetooth tutorial 
+https://www.bluetooth.com/specifications/assigned-numbers/ //bluetooth service and protocol
+https://www.youtube.com/watch?v=gCQ3iSy6R-U //reverse engineering bluetooth protocol
+https://stackoverflow.com/questions/27189338/swift-native-functions-to-have-numbers-as-hex-strings //format string
+https://stackoverflow.com/questions/59118489/ios-swift-mi-scale-2-bluetooth-get-weight //how to get data on xiaomi scale, the calculation
+https://github.com/theslash/ios_mi_scale //how to calculate xiaomi scale 2 data
+https://github.com/wiecosystem/Bluetooth/blob/master/doc/devices/huami.health.scale2.md
+https://stackoverflow.com/questions/28487146/how-to-add-live-camera-preview-to-uiview
+https://dev.to/henrylim96/reading-xiaomi-mi-scale-data-with-web-bluetooth-scanning-api-1mb9
+https://github.com/wiecosystem/Bluetooth/blob/master/sandbox/huami.health.scale2/body_metrics.py
+
+Tools : Packet logger
+https://www.bluetooth.com/blog/a-new-way-to-debug-iosbluetooth-applications/ #use packet tracer to receive data
+NRFConnect // you can test send and receive data
+
+/// raw data that came
+{length = 1, bytes = 0x00}
+{length = 20, bytes = 0x0000002000000000000000000000200000002000}
+{length = 1, bytes = 0x0d}
+{length = 20, bytes = 0x30303020546f74616c56616c7565203030362000} rata2 132
+{length = 1, bytes = 0x0d}
+{length = 20, bytes = 0x3030312032323035323632303031203130322030} 102 20:02 26/5/2022					
+{length = 1, bytes = 0x0d}
+{length = 20, bytes = 0x3030322032323035323531323033203138332030} 
+{length = 1, bytes = 0x0d}
+{length = 20, bytes = 0x3030332032323035323431303035203039342030} 
+{length = 1, bytes = 0x0d}
+{length = 20, bytes = 0x3030342032323035323430393539203138322030} 
+{length = 1, bytes = 0x0d}
+{length = 20, bytes = 0x3030352032323035323230393139203134312030}
+{length = 1, bytes = 0x0d}
+{length = 20, bytes = 0x3030362032323035323230383133203039312030}
+{length = 1, bytes = 0x0d}
+
+//////////// after encode byte by byte, remove 3 at the front ( or in decimal data -48)
+
+{length = 20, bytes = 0x30 30 31 20 32 32 30 35 32 36 32 30 30 31 20 31 30 32 20 30} //data 0    26/5/2022 20:02 102
+                        0  0  1  -  2  2  0  5  2  6  2  0  0  1  -  1  0  2  -  0 
+                        Ndata       YY    MM    DD    HH    mm       Glucose     eventFood
+{length = 20, bytes = 0x30 30 31 20 32 32 30 35 32 35 31 32 30 33 20 31 38 33 20 30} //data 1    25/05/2022 12:03 183
+
+{length = 20, bytes = 0x30 30 32 20 32 32 30 35 32 34 31 30 30 35 20 30 39 34 20 30} //data 2    24/05/2022 10:05 94
+
+{length = 20, bytes = 0x30 30 33 20 32 32 30 35 32 34 30 39 35 39 20 31 38 32 20 30} //data 3    24/05/2022 09:59 182
+
+{length = 20, bytes = 0x30 30 34 20 32 32 30 35 32 32 30 39 31 39 20 31 34 31 20 30} //data 4    22/05/2022 09:19 141
+
+{length = 20, bytes = 0x30 30 35 20 32 32 30 35 32 32 30 38 31 33 20 30 39 31 20 30} //data 5    22/05/2022 08:13 91
+
+//////////// snippet from android code
+if (!sb.equals("0000002000000000000000000000200000002000") && sb.length() != 2 && sb.length() != 1 && sb.length() == 40) {
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    int i = 0;
+    while (i < sb.length()) {
+        int i2 = i + 2;
+        byteArrayOutputStream.write(Integer.parseInt(sb.substring(i, i2), 16));
+        i = i2;
+    }
+    String str = new String(byteArrayOutputStream.toByteArray(), Charset.forName("UTF-8"));
+    String substring = str.substring(4, 14);
+    AddBLEConnectFragment.this.stNumberic = str.substring(0, 3);
+    String unused3 = AddBLEConnectFragment.this.stYear = str.substring(4, 6);
+    String unused4 = AddBLEConnectFragment.this.stMonth = str.substring(6, 8);
+    String unused5 = AddBLEConnectFragment.this.stDay = str.substring(8, 10);
+    String unused6 = AddBLEConnectFragment.this.stHour = str.substring(10, 12);
+    String unused7 = AddBLEConnectFragment.this.stMinute = str.substring(12, 14);
+    AddBLEConnectFragment.this.stGlucose = str.substring(15, 18);
+    AddBLEConnectFragment.this.stEvent = str.substring(19, 20);
+    if (substring.equals("TotalValue")) {
+        AddBLEConnectFragment.this.stTotalNum = str.substring(15, 18);
+        return;
+    }
+///////////
+
